@@ -1,7 +1,9 @@
 package Trees;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
 
 import Datastructures.TreeNode;
 
@@ -11,14 +13,14 @@ public class ValidateBinarySearchTree {
         TreeNode root = new TreeNode(2);
         root.left = new TreeNode(1);
         root.right = new TreeNode(3);
-        System.out.println("Is Valid BST : " + validateBinarySearchTree.isValidBST(root));
+        System.out.println("Is Valid BST : " + validateBinarySearchTree.isValidBSTInOrderIterative(root));
 
         TreeNode root1 = new TreeNode(5);
         root1.left = new TreeNode(4);
         root1.right = new TreeNode(6);
         root1.right.left = new TreeNode(3);
         root1.right.right = new TreeNode(7);
-        System.out.println("Is Valid BST : " + validateBinarySearchTree.isValidBST(root1));
+        System.out.println("Is Valid BST : " + validateBinarySearchTree.isValidBSTInOrderIterative(root1));
     }
 
     /*
@@ -57,35 +59,6 @@ public class ValidateBinarySearchTree {
     Integer prev = 0;
 
     public boolean isValidBST(TreeNode root) {
-        // if (root == null)
-        // return false;
-        // int rootVal = root.val;
-        // System.out.println("Root Val : " + rootVal);
-        // Queue<TreeNode> q = new LinkedList<>();
-        // q.add(root);
-        // while (!q.isEmpty()) {
-        // TreeNode curr = q.poll();
-        // if (curr != null) {
-        // if (curr.left != null) {
-        // System.out.println("Left : " + curr.left.val + " Curr : " + curr.val);
-        // if (!(curr.left.val < curr.val && curr.left.val < rootVal)) {
-        // return false;
-        // } else {
-        // q.add(curr.left);
-        // }
-        // }
-        // if (curr.right != null) {
-        // System.out.println("Right : " + curr.right.val + " Curr : " + curr.val);
-        // if (!(curr.right.val > curr.val && curr.right.val > rootVal)) {
-        // return false;
-        // } else {
-        // q.add(curr.right);
-        // }
-        // }
-        // }
-        // }
-        // return true;
-
         if (root == null)
             return true;
         if (!isValidBST(root.left))
@@ -96,35 +69,60 @@ public class ValidateBinarySearchTree {
         return isValidBST(root.right);
     }
 
-    public boolean isValidBSTLeft(TreeNode root, int rootValue) {
-        if (root == null) {
-            return false;
-        }
+    public boolean isValidBSTInOrderToList(TreeNode root) {
+        List<Integer> values = new ArrayList<>();
+        collectInOrder(root, values);
+        return isStriclyIncreasing(values);
+    }
 
-        if (root.left != null) {
-            if (root.left.val < rootValue && root.left.val < root.val) {
-                System.out.println("L" + root.left.val + " --- " + rootValue + " --- " + root.val);
-                return isValidBSTLeft(root.left, rootValue);
-            } else {
+    public void collectInOrder(TreeNode root, List<Integer> values) {
+        if (root == null)
+            return;
+        collectInOrder(root.left, values);
+        values.add(root.val);
+        collectInOrder(root.right, values);
+    }
+
+    public boolean isStriclyIncreasing(List<Integer> values) {
+        for (int i = 1; i < values.size(); i++) {
+            if (values.get(i) <= values.get(i - 1)) {
                 return false;
             }
         }
-
         return true;
     }
 
-    public boolean isValidBSTRight(TreeNode root, int rootValue) {
-        if (root == null) {
-            return false;
-        }
+    public boolean isValidBSTReccursiveInOrder(TreeNode root) {
+        return isValidBSTWithBounds(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
 
-        if (root.right != null) {
-            if (root.right.val > rootValue && root.right.val > root.val) {
-                System.out.println("R" + root.right.val + " --- " + rootValue + " --- " + root.val);
-                return isValidBSTRight(root.right, rootValue);
-            } else {
+    public boolean isValidBSTWithBounds(TreeNode root, long minBound, long maxBound) {
+        if (root == null)
+            return true;
+        if (root.val <= minBound || root.val >= maxBound)
+            return false;
+        boolean isLeftValid = isValidBSTWithBounds(root.left, minBound, root.val);
+        boolean isRightValid = isValidBSTWithBounds(root.right, root.val, maxBound);
+        return isLeftValid && isRightValid;
+    }
+
+    public boolean isValidBSTInOrderIterative(TreeNode root) {
+        Deque<TreeNode> q = new ArrayDeque<>();
+        TreeNode current = root;
+        long prevVal = Long.MIN_VALUE;
+        while (current != null || !q.isEmpty()) {
+            while (current != null) {
+                q.push(current);
+                current = current.left;
+            }
+            current = q.pop();
+
+            if (current.val <= prevVal) {
                 return false;
             }
+
+            prevVal = current.val;
+            current = current.right;
         }
 
         return true;
