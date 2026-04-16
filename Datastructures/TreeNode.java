@@ -53,27 +53,24 @@ public class TreeNode {
         if (node == null)
             return;
 
-        // Root has no connector; left children use ├──, right children use └──
-        String connector = isRoot ? "" : (isLeft ? "├── " : "└── ");
+        String connector = isRoot ? "" : (isLeft ? "└── " : "┌── ");
         sb.append(prefix).append(connector).append(node.val).append("\n");
 
-        // If this node is a left child, extend its column downward with │
-        // If it's a right child (or root), the column is closed, so use spaces
-        String childPrefix = isRoot ? "" : (isLeft ? prefix + "│   " : prefix + "    ");
+        String childPrefix = isRoot ? "" : (isLeft ? prefix + "    " : prefix + "│   ");
 
         boolean hasLeft = node.left != null;
         boolean hasRight = node.right != null;
 
-        // Only print null placeholders when a sibling exists on the other side
-        // (avoids cluttering leaf-only subtrees with redundant nulls)
         if (hasLeft || hasRight) {
-            if (hasLeft)
-                buildTreeString(node.left, sb, childPrefix, true, false);
-            else
-                sb.append(childPrefix).append("├── null\n");
-
+            // ✅ Print RIGHT child first (appears on top in output = visually right)
             if (hasRight)
                 buildTreeString(node.right, sb, childPrefix, false, false);
+            else
+                sb.append(childPrefix).append("┌── null\n");
+
+            // ✅ Print LEFT child second (appears on bottom in output = visually left)
+            if (hasLeft)
+                buildTreeString(node.left, sb, childPrefix, true, false);
             else
                 sb.append(childPrefix).append("└── null\n");
         }
