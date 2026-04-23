@@ -79,13 +79,17 @@ public class RangeSumOfBST {
             if (current == null)
                 continue;
             if (current.val < low) {
-                queue.push(current.right);
+                if (current.right != null)
+                    queue.push(current.right);
             } else if (current.val > high) {
-                queue.push(current.left);
+                if (current.left != null)
+                    queue.push(current.left);
             } else {
                 sum += current.val;
-                queue.push(current.left);
-                queue.push(current.right);
+                if (current.left != null)
+                    queue.push(current.left);
+                if (current.right != null)
+                    queue.push(current.right);
             }
         }
         return sum;
