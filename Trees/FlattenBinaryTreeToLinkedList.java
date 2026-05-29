@@ -123,8 +123,8 @@ public class FlattenBinaryTreeToLinkedList {
     public void flattenReversePreOrder(TreeNode root) {
         if (root == null)
             return;
-        flatten(root.right);
-        flatten(root.left);
+        flattenReversePreOrder(root.right);
+        flattenReversePreOrder(root.left);
         root.right = previousNode;
         root.left = null;
         previousNode = root;
