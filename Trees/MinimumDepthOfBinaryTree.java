@@ -15,7 +15,6 @@ public class MinimumDepthOfBinaryTree {
         root.right.left = new TreeNode(15);
         root.right.left.right = new TreeNode(7);
         System.out.println("MinimumDepthOfBinaryTree : " + minimumDepthOfBinaryTree.minDepth(root));
-        System.out.println("MinimumDepthOfBinaryTree : " + minimumDepthOfBinaryTree.minDepth1(root));
         System.out.println("MinimumDepthOfBinaryTree : " + minimumDepthOfBinaryTree.minDepthDFSIterativeStack(root));
         System.out.println("MinimumDepthOfBinaryTree : " + minimumDepthOfBinaryTree.minDepthBFSIterative(root));
     }
@@ -118,19 +117,6 @@ public class MinimumDepthOfBinaryTree {
         return depth;
     }
 
-    public int minDepth1(TreeNode root) {
-        if (root == null)
-            return 0;
-        if (root.left == null && root.right == null)
-            return 1;
-        if (root.left == null)
-            return 1 + minDepth(root.right);
-        if (root.right == null)
-            return 1 + minDepth(root.left);
-        int leftDepth = minDepth1(root.left);
-        int rightDepth = minDepth1(root.right);
-        return 1 + Math.min(leftDepth, rightDepth);
-    }
 }
 // @formatter:off
 /*
