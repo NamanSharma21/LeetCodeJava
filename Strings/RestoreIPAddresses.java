@@ -8,6 +8,8 @@ public class RestoreIPAddresses {
         RestoreIPAddresses restoreIPAddresses = new RestoreIPAddresses();
         System.out.println(
                 "RestoreIPAddresses : " + restoreIPAddresses.restoreIpAddressesBackTrackDFSPruning("25525511135"));
+        System.out.println("RestoreIPAddresses : "
+                + restoreIPAddresses.restoreIpAddressesIterativeTripleLoopWithBoundedSegmentLengths("25525511135"));
     }
 
     // @formatter:off
@@ -91,6 +93,27 @@ public class RestoreIPAddresses {
             return false;
         int ip = Integer.parseInt(segment);
         return ip <= 255;
+    }
+
+    public List<String> restoreIpAddressesIterativeTripleLoopWithBoundedSegmentLengths(String s) {
+        List<String> results = new ArrayList<>();
+        int n = s.length();
+        for (int len1 = 1; len1 <= 3; len1++) {
+            for (int len2 = 1; len2 <= len1; len2++) {
+                for (int len3 = 1; len3 <= 3; len3++) {
+                    int len4 = n - len1 - len2 - len3;
+                    if (len4 < 1 || len4 > 3)
+                        continue;
+                    String segment1 = s.substring(0, len1);
+                    String segment2 = s.substring(len1, len1 + len2);
+                    String segment3 = s.substring(len1 + len2, len1 + len2 + len3);
+                    String segment4 = s.substring(len1 + len2 + len3, n);
+                    if (isValidIp(segment1) && isValidIp(segment2) && isValidIp(segment3) && isValidIp(segment4))
+                        results.add(segment1 + "." + segment2 + "." + segment3 + "." + segment4);
+                }
+            }
+        }
+        return results;
     }
 }
 
