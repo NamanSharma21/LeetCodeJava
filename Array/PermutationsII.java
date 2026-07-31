@@ -46,7 +46,7 @@ public class PermutationsII {
      * -10 <= nums[i] <= 10
      * 
      */
-    // @formatter:off
+    // @formatter:on
 
     public List<List<Integer>> permuteUniqueBackTrackPruning(int[] nums) {
         List<List<Integer>> result = new ArrayList<>();
@@ -86,24 +86,24 @@ public class PermutationsII {
         return new ArrayList<>(result);
     }
 
-    public void backTrackBruteForceInPlaceSwap(int[] nums,int position,Set<List<Integer>> result){
-        if(position==nums.length){
+    public void backTrackBruteForceInPlaceSwap(int[] nums, int position, Set<List<Integer>> result) {
+        if (position == nums.length) {
             List<Integer> temp = new ArrayList<>();
-            for(int num:nums){
+            for (int num : nums) {
                 temp.add(num);
             }
             result.add(temp);
             return;
         }
 
-        for(int i = position;i<nums.length;i++){
+        for (int i = position; i < nums.length; i++) {
             swap(nums, position, i);
-            backTrackBruteForceInPlaceSwap(nums, position+1, result);
+            backTrackBruteForceInPlaceSwap(nums, position + 1, result);
             swap(nums, position, i);
         }
     }
 
-    public void swap(int[] nums, int left,int right){
+    public void swap(int[] nums, int left, int right) {
         int temp = nums[left];
         nums[left] = nums[right];
         nums[right] = temp;
