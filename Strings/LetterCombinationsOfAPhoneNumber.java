@@ -9,6 +9,7 @@ public class LetterCombinationsOfAPhoneNumber {
         System.out.println(
                 "LetterCombinationsOfAPhoneNumber : "
                         + letterCombinationsOfAPhoneNumber.letterCombinationsBackTrackingDFS("23"));
+        System.out.println("----------------------------------------------------------------------");
         System.out.println(
                 "LetterCombinationsOfAPhoneNumber : "
                         + letterCombinationsOfAPhoneNumber.letterCombinationsIterativeBFS("23"));
@@ -53,6 +54,21 @@ public class LetterCombinationsOfAPhoneNumber {
      */
     // @formatter:on
 
+    // @formatter:off
+    /*
+    *
+    * ------------------------------------------------------------
+    * Approach 3: Backtracking DFS ✅
+    * ------------------------------------------------------------
+    * Time:  O(4^n · n)
+    *   Same total number of combinations. Each leaf-node write costs O(n) to
+    *   copy the StringBuilder → n · 4^n total.
+    * Space:
+    *   Auxiliary (call stack + StringBuilder): O(n) — recursion depth = digits.length()
+    *   Output: O(4^n · n) — unavoidable; this is the size of the answer
+    *   Advantage: only O(n) working memory vs BFS's O(4^n · n) working memory
+    */
+   // @formatter:on
     private static final String[] PHONE_MAP = {
             "", "", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"
     };
@@ -78,6 +94,20 @@ public class LetterCombinationsOfAPhoneNumber {
         }
     }
 
+    // @formatter:off
+    /*
+    * ------------------------------------------------------------
+    * Approach 2: Iterative BFS
+    * ------------------------------------------------------------
+    * Time:  O(4^n · n)
+    *   At each of the n digit levels, every existing string (up to 4^(n-1)) is
+    *   extended by up to 4 letters. Total work = n · 4^n.
+    *   For n=4: 4 · 256 = 1,024 string operations.
+    * Space: O(4^n · n)
+    *   The intermediate expanded list holds up to 4^n strings of length up to n.
+    *   All partial results exist in memory simultaneously.
+    */
+   // @formatter:on
     public List<String> letterCombinationsIterativeBFS(String digits) {
         List<String> result = new ArrayList<>();
         if (digits == null || digits.isEmpty())
