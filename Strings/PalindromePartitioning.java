@@ -8,8 +8,10 @@ public class PalindromePartitioning {
         PalindromePartitioning palindromePartitioning = new PalindromePartitioning();
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBruteForce("aab"));
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBruteForce("bb"));
+        System.out.println("---------------------------------------------------------");
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBackTrackDPTabulation("aab"));
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBackTrackDPTabulation("bb"));
+        System.out.println("---------------------------------------------------------");
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBackTrackDPMemoization("aab"));
         System.out.println("PalindromePartitioning : " + palindromePartitioning.partitionBackTrackDPMemoization("bb"));
     }
@@ -40,6 +42,14 @@ public class PalindromePartitioning {
      */
     // @formatter:on
 
+    /*
+     * Approach 1 (Brute Force):
+     * Time: O(n * 2^n) - up to 2^(n-1) partitions, each up to O(n)
+     * work for substring copies and palindrome checks.
+     * Space: O(n) recursion stack and current partition list.
+     * Example: n=10 ("aaaaaaaaaa") -> up to 512 partitions, each
+     * needing up to 10 checks of up to 10 chars.
+     */
     public List<List<String>> partitionBruteForce(String s) {
         List<List<String>> result = new ArrayList<>();
         backTrackBruteForce(s, 0, new ArrayList<>(), result);
@@ -80,6 +90,15 @@ public class PalindromePartitioning {
         return result;
     }
 
+    /*
+     *
+     * Approach 2 (DP Table):
+     * Time: O(n^2) precompute + O(n * 2^n) backtracking with O(1)
+     * checks; same asymptotic class as Approach 1 but smaller constant.
+     * Space: O(n^2) for table + O(n) recursion stack.
+     * Example: n=16 (max constraint) -> table has 256 entries.
+     * 
+     */
     public void backTrackDPTabulation(String s, int start, boolean[][] dp, List<String> currentPartition,
             List<List<String>> result) {
         int n = s.length();
@@ -113,6 +132,16 @@ public class PalindromePartitioning {
         return dp;
     }
 
+    /*
+     *
+     * 
+     * Approach 3 (Memoization):
+     * Time: O(n * 2^n), same as Approach 2 worst case.
+     * Space: O(n^2) worst case for memo + O(n) recursion stack
+     * (both partitioning recursion and palindrome-check recursion).
+     * Example: n=16 -> memo table same max size as Approach 2's
+     * table, but possibly fewer entries computed in sparse inputs.
+     */
     private Boolean[][] memo;
 
     public List<List<String>> partitionBackTrackDPMemoization(String s) {
@@ -144,7 +173,7 @@ public class PalindromePartitioning {
             return true;
         if (memo[start][end] != null)
             return memo[start][end];
-        boolean result = s.charAt(start) == s.charAt(end) && isPalindrome(s, start + 1, end - 1);
+        boolean result = s.charAt(start) == s.charAt(end) && isPalindromeDPMemoization(s, start + 1, end - 1);
         memo[start][end] = result;
         return result;
     }
