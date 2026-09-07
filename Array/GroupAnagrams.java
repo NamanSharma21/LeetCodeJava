@@ -7,12 +7,19 @@ import java.util.List;
 import java.util.Map;
 
 public class GroupAnagrams {
-    public static void main(String[] args) {
-        GroupAnagrams groupAnagrams = new GroupAnagrams();
-        System.out.println("GroupAnagrams : "
-                + groupAnagrams.groupAnagrams(new String[] { "eat", "tea", "tan", "ate", "nat", "bat" }));
-    }
+   public static void main(String[] args) {
+      GroupAnagrams groupAnagrams = new GroupAnagrams();
+      System.out.println("GroupAnagrams : "
+            + groupAnagrams.groupAnagramsSortKeyHashing(new String[] { "eat", "tea", "tan", "ate", "nat", "bat" }));
+      System.out.println("--------------------------------------------------------");
+      System.out.println("GroupAnagrams : "
+            + groupAnagrams.groupAnagramsCountKeyHashing(new String[] { "eat", "tea", "tan", "ate", "nat", "bat" }));
+      System.out.println("--------------------------------------------------------");
+      System.out.println("GroupAnagrams : "
+            + groupAnagrams.groupAnagramsBruteForce(new String[] { "eat", "tea", "tan", "ate", "nat", "bat" }));
+   }
 
+   // @formatter:off
     /**
      * 
      * https://leetcode.com/explore/interview/card/top-interview-questions-medium/103/array-and-strings/778/
@@ -21,6 +28,15 @@ public class GroupAnagrams {
      * Given an array of strings strs, group the anagrams together. You can return
      * the answer in any order.
      * 
+     * To make a valid anagram, you must follow three simple rules:
+     * Use the exact same letters: You must use every single letter from the original word or phrase.
+     * You cannot add new letters or leave any out.
+     * 
+     * Use each letter only once: If the original word has one "T", your anagram can only have one "T". 
+     * If it has two "E"s, your anagram must have exactly two "E"s.
+     * 
+     * Form real words: The rearranged letters must spell an actual, meaningful word or phrase in the language you are using. 
+     * Random gibberish does not count.
      * 
      * 
      * Example 1:
@@ -57,428 +73,520 @@ public class GroupAnagrams {
      * strs[i] consists of lowercase English letters.
      * 
      */
+    // @formatter:on
 
-    public List<List<String>> groupAnagrams(String[] strs) {
-
-        // Map<String, List<String>> groups = new HashMap<>();
-        // for (String str : strs) {
-        // char[] cArray = str.toCharArray();
-        // int[] count = new int[26];
-        // for (int i = 0; i < cArray.length; i++) {
-        // count[cArray[i] - 'a']++;
-        // }
-
-        // StringBuilder key = new StringBuilder();
-        // for (Integer freq : count) {
-        // key.append("#");
-        // key.append(freq);
-        // }
-
-        // groups.computeIfAbsent(key.toString(), k -> new ArrayList<>()).add(str);
-        // }
-
-        // return new ArrayList<>(groups.values());
-
-        Map<String, List<String>> group = new HashMap<>();
-        for (String s : strs) {
-            char[] sorted = s.toCharArray();
-            Arrays.sort(sorted);
-            String key = new String(sorted);
-            group.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
-        }
-        return new ArrayList<>(group.values());
-    }
-
+   // @formatter:off
     /**
      * 
+     *Approach	               Time  	      Space	      Code Complexity      Recommended?
+     *Sort-Key Hashing	      O(n · k log k)	O(n · k)	   Very low	            ✅ Great for interviews when k is small
      * 
-     * ## 1. Problem Statement
-
-### Restate in own words
-
-You are given an array of strings `strs`. You must **group together all strings that are anagrams of each other**.  
-
-Two strings are anagrams if:
-
-- They contain the **same characters**,
-- With the **same frequencies**,
-- Order doesn’t matter (e.g., `"eat"`, `"tea"`, `"ate"` are anagrams).
-
-The groups can be returned in **any order**, and the strings inside each group can be in any order.
-
-### Input / Output / Constraints
-
-- **Input:** `String[] strs`
-  - Typical constraints (LeetCode 49 style):  
-    - `1 <= strs.length <= 10^4`  
-    - `0 <= strs[i].length <= 100`  
-    - Strings contain lowercase English letters `a-z`. [algomap](https://algomap.io/problems/group-anagrams)
-- **Output:** `List<List<String>>`
-  - Each inner list is a group of anagrams.
-
-### What to compute
-
-Given `strs`, return a list of groups so that:
-
-- Each string appears in **exactly one** group.
-- Within each group, **all** strings are pairwise anagrams.
-- No string appears in more than one group.
-
-Example:
-
-`["eat","tea","tan","ate","nat","bat"]` → one valid output:
-
-- `["eat","tea","ate"]`
-- `["tan","nat"]`
-- `["bat"]` [algo](https://algo.monster/liteproblems/49)
-
-***
-
-## 2. Intuition
-
-### Core idea
-
-Anagrams share the **same multiset of characters**. If you can transform each string into a **canonical representation** that is identical for anagrams, you can use that representation as a **hash key** and group easily using a map. [studyalgorithms](https://studyalgorithms.com/string/leetcode-group-anagrams-solution/)
-
-Two common canonical representations:
-
-1. **Sorted characters**  
-   - Sort characters in the string; anagrams become identical.  
-     - `"eat"` → `"aet"`  
-     - `"tea"` → `"aet"`  
-     - `"ate"` → `"aet"`  
-   - Use this sorted string as the map key.
-
-2. **Character frequency signature**  
-   - Count occurrences of each letter (`a` to `z`) into an array of size 26.
-   - Convert the count array to a string key, e.g., `"aab"` → counts `[2,1,0,0,...]` → key `"2#1#0#0#...#0"`.  
-   - Anagrams will produce the same count vector, thus same key.
-
-### How a human might reason
-
-- Given a list like `["act","pots","tops","cat","stop","hat"]`:
-  - Notice `"act"` and `"cat"` share letters {a,c,t}.
-  - `"pots","tops","stop"` share letters {o,p,s,t}.
-  - “hat” is alone.
-- You naturally classify by “bag of letters”.  
-
-Algorithmically:
-
-- For each string:
-  - Build an “anagram signature”.
-  - Put it into the bucket (list) for that signature.
-- Return all buckets.
-
-### Why this is interesting
-
-- Shows how to use **hash maps** with **custom keys**.
-- Shows the idea of **normalization**: transforming data to a canonical form for grouping / classification.
-- It has two reasonable solutions:
-  - Sorting-based: simpler but `O(k log k)` per string.
-  - Frequency-based: a little more code but `O(k)` per string, often faster. [neetcode](https://neetcode.io/solutions/group-anagrams)
-
-***
-
-## 3. Approach Overview
-
-Assume:
-
-- `N` = number of strings (`strs.length`).
-- `K` = maximum length of a string.
-
-### Approach 1 – Sort each string (Straightforward, very common)
-
-- **Key idea:** Sort chars of each string; use sorted string as key in `Map<String, List<String>>`.
-- **Complexity:** O(N·K log K) time; O(N·K) space.
-- **When used:** Preferred in interviews because it’s simple and robust. [educative](https://www.educative.io/answers/group-anagrams-leetcode)
-
-### Approach 2 – Character frequency key (Better asymptotically)
-
-- **Key idea:** For each string, build a 26-length count array and use that as a key (converted to string) in map.
-- **Complexity:** O(N·K) time; O(N·K) space.
-- **When used:** When you want optimal complexity and can assume only lowercase `a-z`. Very popular in editorial/NeetCode style. [learn.innoskrit](https://learn.innoskrit.in/blog/group-anagrams/)
-
-### Approach 3 – Brute-force pairwise anagram checking (Not recommended)
-
-- **Key idea:** For each string, compare with others to decide if anagrams, grouping manually.
-- **Complexity:** O(N²·K) or worse.
-- **When used:** Only for conceptual understanding; not used for real constraints. [studyalgorithms](https://studyalgorithms.com/string/leetcode-group-anagrams-solution/)
-
-**Optimal:** Approach 2 is asymptotically best; Approach 1 is usually accepted and simpler to code.
-
-***
-
-## 4. Detailed Solutions in Java
-
-### 4.1 Approach 1 – Sort each string
-
-#### Algorithm
-
-1. Create a `Map<String, List<String>>` (e.g., `HashMap`) called `groups`.
-2. For each string `s` in `strs`:
-   - Convert `s` to a char array, sort it, and make a new `String` from it: `key`.
-   - Put `s` into `groups.get(key)` (creating the list if needed).
-3. Return `new ArrayList<>(groups.values())`.
-
-#### Java Code
-
-```java
-import java.util.*;
-
-public class GroupAnagramsSort {
-
-    public List<List<String>> groupAnagrams(String[] strs) {
-        Map<String, List<String>> groups = new HashMap<>();
-
-        for (String s : strs) {
-            // Convert string to char array and sort it
-            char[] chars = s.toCharArray();
-            Arrays.sort(chars);
-            String key = new String(chars); // sorted representation
-
-            // Add original string to the correct anagram group
-            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
-        }
-
-        // Return all groups
-        return new ArrayList<>(groups.values());
-    }
-}
-```
-
-#### Complexity
-
-- For each string (N strings):
-  - Sorting characters takes O(K log K).
-- Total: **O(N · K log K)** time. [algomap](https://algomap.io/problems/group-anagrams)
-- Space:
-  - Hash map stores N strings plus keys; keys are length up to K.
-  - Total string data O(N·K).
-  - Extra overhead for map → **O(N·K)**.
-
-Example scale:
-
-- N = 1000, K = 20:  
-  Sort cost ~ 1000 · 20 log 20 ≈ 1000 · 20 · 4 ≈ 80k char comparisons; trivial.
-
-#### Worked Example – Approach 1
-
-Input:
-
-`["eat","tea","tan","ate","nat","bat"]`
-
-Initialize: `groups = {}`
-
-1. s = "eat"
-   - chars = ['e','a','t'] → sort → ['a','e','t'] → key = "aet"
-   - groups["aet"] = ["eat"]
-
-2. s = "tea"
-   - chars = ['t','e','a'] → sort → "aet"
-   - groups["aet"] = ["eat","tea"]
-
-3. s = "tan"
-   - chars = ['t','a','n'] → sort → "ant"
-   - groups["ant"] = ["tan"]
-
-4. s = "ate"
-   - sort → "aet"
-   - groups["aet"] = ["eat","tea","ate"]
-
-5. s = "nat"
-   - sort → "ant"
-   - groups["ant"] = ["tan","nat"]
-
-6. s = "bat"
-   - sort → "abt"
-   - groups["abt"] = ["bat"]
-
-Final `groups.values()` →
-
-- `["eat","tea","ate"]`
-- `["tan","nat"]`
-- `["bat"]`
-
-Order can vary, but grouping is correct.
-
-***
-
-### 4.2 Approach 2 – Character Frequency Key (Optimal time)
-
-This avoids sorting each string.
-
-#### Algorithm
-
-1. Create `Map<String, List<String>>` called `groups`.
-2. For each string `s` in `strs`:
-   - Create an `int[26]` count array initialised to 0.
-   - For each character `c` in `s`, do `count[c - 'a']++`.
-   - Convert `count` to a string key, e.g., with a delimiter: `"#1#0#2#..."`.  
-     (Important: use a delimiter to distinguish `[1,11]` vs `[11,1]`.)
-   - Add `s` to `groups.get(key)`.
-3. Return `new ArrayList<>(groups.values())`.
-
-#### Java Code
-
-```java
-import java.util.*;
-
-public class GroupAnagramsCount {
-
-    public List<List<String>> groupAnagrams(String[] strs) {
-        Map<String, List<String>> groups = new HashMap<>();
-
-        for (String s : strs) {
-            // Frequency array for 26 lowercase letters
-            int[] count = new int[26];
-            for (char c : s.toCharArray()) {
-                count[c - 'a']++;
-            }
-
-            // Build a key from counts, e.g. "#1#0#2..."
-            StringBuilder keyBuilder = new StringBuilder();
-            for (int freq : count) {
-                keyBuilder.append('#');
-                keyBuilder.append(freq);
-            }
-            String key = keyBuilder.toString();
-
-            groups.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
-        }
-
-        return new ArrayList<>(groups.values());
-    }
-}
-```
-
-This pattern matches standard editorial solutions: frequency vector as key. [learn.innoskrit](https://learn.innoskrit.in/blog/group-anagrams/)
-
-#### Complexity
-
-- For each string of length K:
-  - Counting characters is O(K).
-  - Building key is O(26) = O(1).
-- Total: **O(N · K)** time, better than sorting for large K. [neetcode](https://neetcode.io/solutions/group-anagrams)
-- Space:
-  - Map holds N strings and their keys. Keys are fixed size (~26 ints → short string).
-  - Overall roughly **O(N·K)** for storing original strings plus O(N) for keys.
-
-Example scale:
-
-- N = 1000, K = 100:  
-  1000 · 100 = 100k char visits; very fast.
-
-#### Worked Example – Approach 2
-
-`strs = ["eat","tea","tan","ate","nat","bat"]`.
-
-We’ll show keys:
-
-1. "eat"
-   - counts: e(1), a(1), t(1), others 0.
-   - key: `"#1#0#0#0#1#0#0...#1#..."` (actual string but conceptually same).
-   - groups[key] = ["eat"].
-
-2. "tea"
-   - same counts as "eat".
-   - same key.
-   - groups[key] = ["eat","tea"].
-
-3. "tan"
-   - counts: t(1), a(1), n(1).
-   - new key.
-   - groups[key2] = ["tan"].
-
-4. "ate"
-   - same as "eat"/"tea" → key1.
-   - groups[key1] = ["eat","tea","ate"].
-
-5. "nat"
-   - same as "tan" → key2.
-   - groups[key2] = ["tan","nat"].
-
-6. "bat"
-   - counts: b(1), a(1), t(1).
-   - key3.
-   - groups[key3] = ["bat"].
-
-Result identical grouping.
-
-***
-
-### 4.3 Approach 3 – Brute Force (Pairwise Checking, Not Recommended)
-
-#### Algorithm
-
-1. Maintain a `List<List<String>> groups`.
-2. For each string `s`:
-   - Try to place it into an existing group by checking if `s` is an anagram of group’s representative (say first string in that group).
-   - If matches an existing group, add to that group.
-   - Otherwise create a new group.
-3. The anagram check can be done by sorting or counting each time.
-
-#### Why it’s bad
-
-- For each string, you may compare with many groups: worst O(N) per string.
-- Each anagram check is at least O(K log K) (sorting) or O(K) (counting).
-- Total time can be **O(N² · K)**, not acceptable for large N. [studyalgorithms](https://studyalgorithms.com/string/leetcode-group-anagrams-solution/)
-
-This is mostly a conceptual “anti-pattern” here.
-
-***
-
-## 5. Edge Cases
-
-1. **Single string**: `["abc"]`
-   - Output: `[["abc"]]`.
-   - Both approaches handle this naturally (map with one key → one group).
-
-2. **Empty string(s)**: `["",""]`, `["","abc","bca"]`
-   - Empty strings are all anagrams of each other.
-   - Sorting: `""` sorted is `""`; all empties share same key.
-   - Frequency: counts array all zeros → same key.
-
-3. **No anagrams at all**: `["a","b","c"]`
-   - Each string forms its own group.
-
-4. **All strings identical**: `["aa","aa","aa"]`
-   - All are anagrams; all go into one group.
-
-5. **Large input**:
-   - N up to 10^4, K up to 100. Both Approaches 1 and 2 are fine; Approach 2 is more scalable.
-
-6. **Non-lowercase / Unicode** (if constraints changed):
-   - Sorting approach still works if you can sort characters.
-   - Frequency approach needs adjusting (map char→count with larger alphabet).
-
-***
-
-## 6. Final Summary
-
-- Problem: group strings such that each group contains anagrams.
-- Core trick: design a **canonical key** for each string so anagrams share the same key, and use a **hash map** from key to list of strings.
-
-**Approaches:**
-
-- **Sorting-based (Approach 1):**
-  - Key: sorted characters of the string.
-  - Time O(N·K log K), Space O(N·K).
-  - Very easy and widely used.
-
-- **Frequency-based (Approach 2, optimal):**
-  - Key: frequency vector of 26 letters encoded as string.
-  - Time O(N·K), Space O(N·K).
-  - Slightly more code, but best complexity.
-
-- **Brute-force (Approach 3):**
-  - Pairwise comparisons; O(N²·K), not suitable.
-
-**What to remember:**
-
-> “Group Anagrams” is a quintessential **hashing + normalization** problem:  
-> Normalize each string (by sorting or counting), use that as a **hash key**, and group via a map.
-
-If you want, next we can compare actual runtime characteristics between sorting-based and counting-based implementations in Java, or walk through a tricky example like `["","b",""]` or large sets of repeated anagrams.
-     * 
+     * @param strs
+     * @return
      */
+    // @formatter:on
+   public List<List<String>> groupAnagramsSortKeyHashing(String[] strs) {
+      Map<String, List<String>> group = new HashMap<>();
+      for (String s : strs) {
+         char[] sorted = s.toCharArray();
+         Arrays.sort(sorted);
+         String key = new String(sorted);
+         group.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+      }
+      return new ArrayList<>(group.values());
+   }
+
+   // @formatter:off
+    /**
+     * 
+     *Approach	               Time  	      Space	      Code Complexity      Recommended?
+     *Count-Key Hashing	      O(n · k)	      O(n · k)	   Low–moderate	      ✅✅ Best for time — optimal
+     * 
+     * @param strs
+     * @return
+     */
+    // @formatter:on
+   public List<List<String>> groupAnagramsCountKeyHashing(String[] strs) {
+      Map<String, List<String>> charCountMap = new HashMap<>();
+      for (String word : strs) {
+         int[] count = new int[26];
+         for (int i = 0; i < word.length(); i++) {
+            count[word.charAt(i) - 'a']++;
+         }
+         StringBuilder keyBuilder = new StringBuilder();
+         for (int c : count) {
+            keyBuilder.append("#").append(c);
+         }
+
+         String key = keyBuilder.toString();
+         charCountMap.computeIfAbsent(key, k -> new ArrayList<>()).add(word);
+      }
+      return new ArrayList<>(charCountMap.values());
+   }
+
+   // @formatter:off
+    /**
+     * 
+     *Approach	               Time  	      Space	      Code Complexity      Recommended?
+     *Brute Force Pairwise 	O(n² · k)	   O(n · k)	   Low	               ❌ Not for production — too slow on large n
+     * 
+     * @param strs
+     * @return
+     */
+    // @formatter:on
+   public List<List<String>> groupAnagramsBruteForce(String[] strs) {
+      List<List<String>> groups = new ArrayList<>();
+      for (String word : strs) {
+         boolean placed = false;
+         for (List<String> group : groups) {
+            if (isAnagram(word, group.get(0))) {
+               group.add(word);
+               placed = true;
+               break;
+            }
+         }
+         if (!placed) {
+            List<String> newGroup = new ArrayList<>();
+            newGroup.add(word);
+            groups.add(newGroup);
+         }
+      }
+      return groups;
+   }
+
+   private boolean isAnagram(String a, String b) {
+      if (a.length() != b.length())
+         return false;
+      int[] count = new int[26];
+      for (int i = 0; i < a.length(); i++) {
+         count[a.charAt(i) - 'a']++;
+         count[b.charAt(i) - 'a']--;
+      }
+      for (int c : count) {
+         if (c != 0) {
+            return false;
+         }
+      }
+      return true;
+   }
 }
+
+// @formatter:off
+/*
+ * ============================================================
+ * GROUP ANAGRAMS - DEEP DIVE EXPLANATION
+ * ============================================================
+ *
+ * ============================================================
+ * 1. PROBLEM STATEMENT
+ * ============================================================
+ *
+ * ------------------------------------------------------------
+ * What is the Problem?
+ * ------------------------------------------------------------
+ * You're given an array of lowercase strings. Group together all strings
+ * that are ANAGRAMS of one another - words made of the exact same letters
+ * with the exact same counts, just in a different order (e.g., "eat",
+ * "tea", "ate"). Return the groups. Order of groups and order within a
+ * group do not matter.
+ *
+ * This is LeetCode #49, Group Anagrams (Medium).
+ *
+ * ------------------------------------------------------------
+ * Input Format
+ * ------------------------------------------------------------
+ * String[] strs - array of strings, each lowercase letters (some may be "").
+ *
+ * ------------------------------------------------------------
+ * Output Format
+ * ------------------------------------------------------------
+ * List<List<String>> - list of groups; each inner list holds mutual anagrams.
+ *
+ * ------------------------------------------------------------
+ * Constraints
+ * ------------------------------------------------------------
+ * 1 <= strs.length <= 10^4
+ * 0 <= strs[i].length <= 100
+ * strs[i] contains only lowercase English letters (a-z).
+ *
+ * ------------------------------------------------------------
+ * What Exactly Needs to Be Computed?
+ * ------------------------------------------------------------
+ * For every string, produce a canonical signature identical for all
+ * anagrams and different for non-anagrams. Bucket strings by signature
+ * and return the buckets.
+ *
+ * ------------------------------------------------------------
+ * Quick Example
+ * ------------------------------------------------------------
+ * Input:  ["eat","tea","tan","ate","nat","bat"]
+ * Output: [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+ *
+ * ============================================================
+ * 2. INTUITION
+ * ============================================================
+ *
+ * ------------------------------------------------------------
+ * Core Idea in Simple Terms
+ * ------------------------------------------------------------
+ * Two words are anagrams iff they have the same multiset of letters. Give
+ * every anagram the same "fingerprint," then drop each word into a bucket
+ * keyed by that fingerprint. A HashMap<fingerprint, List<String>> does the
+ * grouping for us.
+ *
+ * ------------------------------------------------------------
+ * How a Human Reasons About It
+ * ------------------------------------------------------------
+ * 1. Anagrams differ only in letter ORDER, never in CONTENT.
+ * 2. Need a representation that ignores order but preserves content.
+ * 3. Two fingerprints: (a) SORT the letters - "eat"/"tea" -> "aet"; or
+ *    (b) COUNT the letters - both become a:1, e:1, t:1.
+ * 4. Use HashMap<fingerprint, List<String>>; append each word to its entry.
+ * 5. Return all the map's values.
+ *
+ * ------------------------------------------------------------
+ * What Makes This Tricky?
+ * ------------------------------------------------------------
+ * | Challenge              | Why it's tricky                                   |
+ * |------------------------|---------------------------------------------------|
+ * | Choosing a good key    | Must match anagrams, differ for non-anagrams.     |
+ * | Making the key hashable| char[] uses identity hashCode; convert to String. |
+ * | Avoiding O(n^2)        | Pairwise comparison is quadratic; map is linear.  |
+ * | Count-key encoding     | Serialize counts with delimiters to avoid clashes.|
+ * | Empty strings          | "" is valid and forms its own group.              |
+ *
+ * ============================================================
+ * 3. APPROACH OVERVIEW
+ * ============================================================
+ *
+ * | # | Approach              | Key Idea                              | Best Used When            | Time            | Space      |
+ * |---|-----------------------|---------------------------------------|---------------------------|-----------------|------------|
+ * | 1 | Brute Force Pairwise  | Compare vs group representatives      | Tiny inputs / teaching    | O(n^2 * k)      | O(n * k)   |
+ * | 2 | Sort-Key Hashing      | Sorted string as map key              | Simple code; small k      | O(n * k log k)  | O(n * k)   |
+ * | 3 | Count-Key Hashing (*) | 26-length count array as key          | Optimal time; large k     | O(n * k)        | O(n * k)   |
+ *
+ * n = number of strings, k = max string length. All three use O(n * k)
+ * space to store the answer (an O(n * k) floor), so SPACE is not the
+ * differentiator - only TIME is. Brute force is quadratic in n; sorting
+ * adds log k per string. Count-key hashing (Approach 3) is OPTIMAL,
+ * removing both n^2 and log k. Prefer Approach 3 when k is large;
+ * Approach 2 is often preferred in interviews for brevity when k is small.
+ *
+ * ============================================================
+ * 4. DETAILED SOLUTIONS IN JAVA
+ * ============================================================
+ *
+ * ------------------------------------------------------------
+ * Approach 1: Brute Force Pairwise
+ * ------------------------------------------------------------
+ * 1. Maintain a list of groups, each represented by its first member.
+ * 2. For each string, test it against each group's representative.
+ * 3. If it matches, add there; otherwise start a new group.
+ * 4. Return all groups.
+ *
+ *    import java.util.*;
+ *
+ *    public class GroupAnagramsBrute {
+ *        public List<List<String>> groupAnagrams(String[] strs) {
+ *            List<List<String>> groups = new ArrayList<>();
+ *            for (String word : strs) {
+ *                boolean placed = false;
+ *                for (List<String> group : groups) {
+ *                    if (isAnagram(word, group.get(0))) {
+ *                        group.add(word);
+ *                        placed = true;
+ *                        break;
+ *                    }
+ *                }
+ *                if (!placed) {
+ *                    List<String> newGroup = new ArrayList<>();
+ *                    newGroup.add(word);
+ *                    groups.add(newGroup);
+ *                }
+ *            }
+ *            return groups;
+ *        }
+ *
+ *        private boolean isAnagram(String a, String b) {
+ *            if (a.length() != b.length()) return false;
+ *            int[] count = new int[26];
+ *            for (int i = 0; i < a.length(); i++) {
+ *                count[a.charAt(i) - 'a']++;
+ *                count[b.charAt(i) - 'a']--;
+ *            }
+ *            for (int c : count) if (c != 0) return false;
+ *            return true;
+ *        }
+ *
+ *        public static void main(String[] args) {
+ *            GroupAnagramsBrute solver = new GroupAnagramsBrute();
+ *            String[] input = {"eat","tea","tan","ate","nat","bat"};
+ *            System.out.println(solver.groupAnagrams(input));
+ *        }
+ *    }
+ *
+ * Worst case (all unique) forms n groups; each string is compared against
+ * up to n representatives at O(k) each -> O(n^2 * k).
+ *
+ * ------------------------------------------------------------
+ * Approach 2: Sort-Key Hashing
+ * ------------------------------------------------------------
+ * 1. Create HashMap<String, List<String>>.
+ * 2. Sort each word's characters to form the key.
+ * 3. Append the original word to that key's list.
+ * 4. Return all map values.
+ *
+ *    import java.util.*;
+ *
+ *    public class GroupAnagramsSort {
+ *        public List<List<String>> groupAnagrams(String[] strs) {
+ *            Map<String, List<String>> map = new HashMap<>();
+ *            for (String word : strs) {
+ *                char[] chars = word.toCharArray();
+ *                Arrays.sort(chars);
+ *                String key = new String(chars);
+ *                map.computeIfAbsent(key, k -> new ArrayList<>()).add(word);
+ *            }
+ *            return new ArrayList<>(map.values());
+ *        }
+ *
+ *        public static void main(String[] args) {
+ *            GroupAnagramsSort solver = new GroupAnagramsSort();
+ *            String[] input = {"eat","tea","tan","ate","nat","bat"};
+ *            System.out.println(solver.groupAnagrams(input));
+ *        }
+ *    }
+ *
+ * new String(chars) is essential - a raw char[] uses identity hashCode,
+ * so equal arrays would hash to different buckets.
+ *
+ * ------------------------------------------------------------
+ * Approach 3: Count-Key Hashing (OPTIMAL)
+ * ------------------------------------------------------------
+ * 1. Create HashMap<String, List<String>>.
+ * 2. Build a 26-length int array of letter counts per word.
+ * 3. Serialize counts with a delimiter (e.g., #1#0#0...#1...).
+ * 4. Append the word to that key's list.
+ * 5. Return all map values.
+ *
+ *    import java.util.*;
+ *
+ *    public class GroupAnagramsCount {
+ *        public List<List<String>> groupAnagrams(String[] strs) {
+ *            Map<String, List<String>> map = new HashMap<>();
+ *            for (String word : strs) {
+ *                int[] count = new int[26];
+ *                for (int i = 0; i < word.length(); i++) {
+ *                    count[word.charAt(i) - 'a']++;
+ *                }
+ *                StringBuilder keyBuilder = new StringBuilder();
+ *                for (int c : count) {
+ *                    keyBuilder.append('#').append(c);
+ *                }
+ *                String key = keyBuilder.toString();
+ *                map.computeIfAbsent(key, k -> new ArrayList<>()).add(word);
+ *            }
+ *            return new ArrayList<>(map.values());
+ *        }
+ *
+ *        public static void main(String[] args) {
+ *            GroupAnagramsCount solver = new GroupAnagramsCount();
+ *            String[] input = {"eat","tea","tan","ate","nat","bat"};
+ *            System.out.println(solver.groupAnagrams(input));
+ *        }
+ *    }
+ *
+ * The # delimiter matters: without it counts can run together (e.g., "1"
+ * then "12" -> "112", same as "11" then "2"). Delimiting (#1#12 vs #11#2)
+ * removes the ambiguity.
+ *
+ * ============================================================
+ * 5. TIME & SPACE COMPLEXITY
+ * ============================================================
+ * n = number of strings, k = max string length.
+ *
+ * Approach 1 - Brute Force Pairwise
+ *   Time:  O(n^2 * k). Worst case n groups; each string vs up to n reps at
+ *          O(k) each.
+ *   Space: O(n * k) for the output groups.
+ *   Example: n=1000 unique, k=10 -> ~1000*1000*10 = 10^7 char ops.
+ *
+ * Approach 2 - Sort-Key Hashing
+ *   Time:  O(n * k log k). Sorting k chars per string is O(k log k).
+ *   Space: O(n * k) for keys plus output.
+ *   Example: n=10^4, k=100 -> ~10^4*100*7 = 7*10^6 ops.
+ *
+ * Approach 3 - Count-Key Hashing (OPTIMAL)
+ *   Time:  O(n * k). One O(k) pass per string; 26-slot key is constant.
+ *   Space: O(n * k) for keys plus output.
+ *   Example: n=10^4, k=100 -> ~10^6 ops - smallest of the three.
+ *
+ * ============================================================
+ * 6. COMPLETE WORKED EXAMPLES
+ * ============================================================
+ * Input: ["eat","tea","tan","ate","nat","bat"]
+ *
+ * ------------------------------------------------------------
+ * Approach 1 - Brute Force Pairwise
+ * ------------------------------------------------------------
+ * groups = []
+ * "eat" -> no match          -> [["eat"]]
+ * "tea" -> anagram of "eat"  -> [["eat","tea"]]
+ * "tan" -> no match          -> [["eat","tea"], ["tan"]]
+ * "ate" -> anagram of "eat"  -> [["eat","tea","ate"], ["tan"]]
+ * "nat" -> anagram of "tan"  -> [["eat","tea","ate"], ["tan","nat"]]
+ * "bat" -> no match          -> [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+ * Output: [["eat","tea","ate"], ["tan","nat"], ["bat"]]
+ *
+ * ------------------------------------------------------------
+ * Approach 2 - Sort-Key Hashing
+ * ------------------------------------------------------------
+ * | Word | Sorted key | Map state after insertion                 |
+ * |------|-----------|-------------------------------------------|
+ * | eat  | aet       | {aet:[eat]}                               |
+ * | tea  | aet       | {aet:[eat,tea]}                           |
+ * | tan  | ant       | {aet:[eat,tea], ant:[tan]}                |
+ * | ate  | aet       | {aet:[eat,tea,ate], ant:[tan]}            |
+ * | nat  | ant       | {aet:[eat,tea,ate], ant:[tan,nat]}        |
+ * | bat  | abt       | {aet:[eat,tea,ate], ant:[tan,nat], abt:[bat]} |
+ * Output: [[eat,tea,ate], [tan,nat], [bat]]
+ *
+ * ------------------------------------------------------------
+ * Approach 3 - Count-Key Hashing
+ * ------------------------------------------------------------
+ * | Word | Nonzero counts | Key  | Map bucket                          |
+ * |------|----------------|------|-------------------------------------|
+ * | eat  | a1 e1 t1       | K1   | {K1:[eat]}                          |
+ * | tea  | a1 e1 t1       | K1   | {K1:[eat,tea]}                      |
+ * | tan  | a1 n1 t1       | K2   | {K1:[eat,tea], K2:[tan]}            |
+ * | ate  | a1 e1 t1       | K1   | {K1:[eat,tea,ate], K2:[tan]}        |
+ * | nat  | a1 n1 t1       | K2   | {K1:[eat,tea,ate], K2:[tan,nat]}    |
+ * | bat  | a1 b1 t1       | K3   | {K1:[eat,tea,ate], K2:[tan,nat], K3:[bat]} |
+ * Output: [[eat,tea,ate], [tan,nat], [bat]]
+ *
+ * ============================================================
+ * 7. EDGE CASES
+ * ============================================================
+ * | Edge Case              | Input        | Expected Output       | How Handled                         |
+ * |------------------------|--------------|-----------------------|-------------------------------------|
+ * | Single string          | ["abc"]      | [["abc"]]             | One key, one group.                 |
+ * | Empty string present   | [""]         | [[""]]                | Empty word -> consistent zero key.  |
+ * | Multiple empty strings | ["",""]      | [["",""]]             | Same empty key -> grouped.          |
+ * | No anagrams at all     | ["a","b","c"]| [["a"],["b"],["c"]]   | Distinct keys -> separate groups.   |
+ * | All identical          | ["ab","ab"]  | [["ab","ab"]]         | Same key; duplicates preserved.     |
+ * | Duplicates + anagrams  | ["ab","ba","ab"] | [["ab","ba","ab"]] | One key; duplicates kept.           |
+ *
+ * ------------------------------------------------------------
+ * Potential Pitfalls
+ * ------------------------------------------------------------
+ * Pitfall 1 - Using a char[] directly as a map key.
+ *   WRONG:
+ *      char[] key = word.toCharArray();
+ *      Arrays.sort(key);
+ *      map.get(key); // identity hashCode; never matches
+ *   CORRECT:
+ *      String key = new String(chars);
+ *
+ * Pitfall 2 - Concatenating counts without a delimiter.
+ *   WRONG:   for (int c : count) keyBuilder.append(c);   // "112" collisions
+ *   CORRECT: for (int c : count) keyBuilder.append('#').append(c);
+ *
+ * Pitfall 3 - Deduplicating within a group. Groups keep duplicate strings;
+ *   using a Set for the inner group would wrongly drop repeats.
+ *
+ * ============================================================
+ * 8. SELF-CORRECTION & TESTING
+ * ============================================================
+ * Q: What edge cases might this miss?
+ * A: Empty and duplicate strings are common misses; both handled here.
+ *    Non-lowercase input would break the - 'a' indexing, but constraints
+ *    guarantee lowercase; generalize with a Map<Character,Integer> if needed.
+ *
+ * Q: Are there any type mismatches?
+ * A: No. Keys are String, values List<String>; return
+ *    new ArrayList<>(map.values()) matches List<List<String>>.
+ *    computeIfAbsent returns the list so .add chains safely.
+ *
+ * Q: How can I verify this works right now?
+ *
+ *    import java.util.*;
+ *
+ *    public class GroupAnagramsVerify {
+ *        // paste groupAnagrams from Approach 3 here
+ *
+ *        private static Set<Set<String>> normalize(List<List<String>> groups) {
+ *            Set<Set<String>> result = new HashSet<>();
+ *            for (List<String> g : groups) result.add(new HashSet<>(g));
+ *            return result;
+ *        }
+ *
+ *        public static void main(String[] args) {
+ *            GroupAnagramsCount solver = new GroupAnagramsCount();
+ *            Set<Set<String>> got = normalize(solver.groupAnagrams(
+ *                new String[]{"eat","tea","tan","ate","nat","bat"}));
+ *            Set<Set<String>> want = normalize(Arrays.asList(
+ *                Arrays.asList("eat","tea","ate"),
+ *                Arrays.asList("tan","nat"),
+ *                Arrays.asList("bat")));
+ *            assert got.equals(want) : "basic case failed";
+ *            assert solver.groupAnagrams(new String[]{""}).size() == 1 : "empty";
+ *            assert solver.groupAnagrams(new String[]{"a"}).size() == 1 : "single";
+ *            assert solver.groupAnagrams(new String[]{"a","b","c"}).size() == 3 : "none";
+ *            System.out.println("All assertions passed.");
+ *        }
+ *    }
+ *
+ * Run with: java -ea GroupAnagramsVerify (compare as sets-of-sets since
+ * group order and intra-group order are not guaranteed).
+ *
+ * | Approach   | Risk                          | Mitigation                          |
+ * |------------|-------------------------------|-------------------------------------|
+ * | Brute Force| Quadratic blowup on large n   | Use only for tiny inputs.           |
+ * | Sort-Key   | char[] used as key by mistake | Wrap in new String(chars).          |
+ * | Count-Key  | Ambiguous run-together counts | Delimit counts with '#'.            |
+ *
+ * ============================================================
+ * 9. COMPANIES & FREQUENCY
+ * ============================================================
+ * LeetCode #49 - Difficulty: Medium - Very high interview frequency.
+ *
+ * | Company          | Frequency | Notes                                    |
+ * |------------------|-----------|------------------------------------------|
+ * | Amazon           | *****     | Classic hashing/grouping warm-up.        |
+ * | Google           | *****     | Often paired with key-design follow-up.  |
+ * | Facebook (Meta)  | *****     | Frequent phone-screen question.          |
+ * | Microsoft        | ****      | Appears in OA and onsite rounds.         |
+ * | Bloomberg        | ****      | Popular for testing map fluency.         |
+ * | Apple            | ***       | Occasional; sometimes as a variant.      |
+ * | Uber             | ***       | Shows up in phone screens.               |
+ * | Adobe            | ***       | Common in India-based loops.             |
+ * | Goldman Sachs    | **        | Occasionally in coding rounds.           |
+ * | Oracle           | **        | Less frequent, but seen.                 |
+ *
+ * ============================================================
+ * 10. FINAL SUMMARY
+ * ============================================================
+ * | Approach            | Time            | Space    | Code Complexity | Recommended?                     |
+ * |---------------------|-----------------|----------|-----------------|----------------------------------|
+ * | Brute Force Pairwise| O(n^2 * k)      | O(n * k) | Low             | NO - too slow on large n         |
+ * | Sort-Key Hashing    | O(n * k log k)  | O(n * k) | Very low        | OK - great for interviews (small k) |
+ * | Count-Key Hashing   | O(n * k)        | O(n * k) | Low-moderate    | BEST for time - optimal          |
+ *
+ * ------------------------------------------------------------
+ * Recommended Approach
+ * ------------------------------------------------------------
+ * Use Count-Key Hashing (Approach 3) for optimal O(n * k) time. All three
+ * share the O(n * k) space floor (the output must hold every character), so
+ * there is no separate space winner to trade off - pick the fastest.
+ * Sort-Key Hashing is an acceptable, briefer interview answer when k is small.
+ *
+ * ------------------------------------------------------------
+ * What to Remember
+ * ------------------------------------------------------------
+ * Pattern: canonical key + hash-bucket grouping. Reduce each item to an
+ * order-independent signature, then group by it in a HashMap. For anagrams
+ * the signature is the sorted string (O(k log k)) or a delimited 26-letter
+ * count (O(k), optimal). Two gotchas: never use a raw char[] as a map key,
+ * and always delimit count keys so digits can't run together.
+ */
+// @formatter:on
