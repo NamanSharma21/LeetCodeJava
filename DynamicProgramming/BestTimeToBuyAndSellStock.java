@@ -1,7 +1,5 @@
 package DynamicProgramming;
 
-import java.util.Arrays;
-
 public class BestTimeToBuyAndSellStock {
     public static void main(String[] args) {
         BestTimeToBuyAndSellStock bestTimeToBuyAndSellStock = new BestTimeToBuyAndSellStock();
