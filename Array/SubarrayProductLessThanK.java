@@ -64,7 +64,7 @@ public class SubarrayProductLessThanK {
         int count = 0;
         for (int start = 0; start < n; start++) {
             long product = 1;
-            for (int end = 0; end < n; end++) {
+            for (int end = start; end < n; end++) {
                 product *= nums[end];
                 if (product < k)
                     count++;
