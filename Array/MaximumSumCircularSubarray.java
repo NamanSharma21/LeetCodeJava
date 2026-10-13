@@ -85,7 +85,7 @@ public class MaximumSumCircularSubarray {
         for (int i = 0; i < n; i++) {
             int currentSum = 0;
             for (int j = 1; j <= n; j++) {
-                int index = (i + j - 1) / n;
+                int index = (i + j - 1) % n;
                 currentSum += nums[index];
                 maxSum = Math.max(maxSum, currentSum);
             }
