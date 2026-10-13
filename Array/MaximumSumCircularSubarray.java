@@ -81,7 +81,7 @@ public class MaximumSumCircularSubarray {
    // @formatter:on
     public int maxSubarraySumCircularBruteForce(int[] nums) {
         int n = nums.length;
-        int maxSum = nums[0];
+        int maxSum = Integer.MIN_VALUE;
         for (int i = 0; i < n; i++) {
             int currentSum = 0;
             for (int j = 1; j <= n; j++) {
