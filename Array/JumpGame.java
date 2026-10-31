@@ -54,8 +54,6 @@ public class JumpGame {
      * | Approach          | Time   | Space | Code Complexity | Recommended?              |
      * |-------------------|--------|-------|-----------------|---------------------------|
      * | Brute Force       | O(2^n) | O(n)  | Low/catastrophic| ❌ Exponential            |
-     * | Dynamic Program.  | O(n^2) | O(n)  | Moderate        | ✅ Acceptable (teaching)  |
-     * | Greedy Max-Reach  | O(n)   | O(1)  | Low             | ✅✅ Best (time & space)  |
      * 
      * @param nums
      * @return
