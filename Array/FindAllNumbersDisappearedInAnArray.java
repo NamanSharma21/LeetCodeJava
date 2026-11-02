@@ -1,6 +1,7 @@
 package Array;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class FindAllNumbersDisappearedInAnArray {
@@ -105,19 +106,21 @@ public class FindAllNumbersDisappearedInAnArray {
      */
     // @formatter:on
     public List<Integer> findDisappearedNumbersSortWalk(int[] nums) {
-        List<Integer> dissappearedIntegers = new ArrayList<>();
+        Arrays.sort(nums);
         int n = nums.length;
-        boolean[] isPresent = new boolean[n + 1];
-        for (int num : nums) {
-            isPresent[num] = true;
-        }
-
-        for (int i = 1; i <= n; i++) {
-            if (!isPresent[i]) {
-                dissappearedIntegers.add(i);
+        List<Integer> missing = new ArrayList<>();
+        int j = 0;
+        for (int expected = 1; expected <= n; expected++) {
+            while (j < n && nums[j] < expected) {
+                j++;
+            }
+            if (j < n && nums[j] == expected) {
+                j++;
+            } else {
+                missing.add(expected);
             }
         }
-        return dissappearedIntegers;
+        return missing;
     }
 
     // @formatter:off
@@ -132,19 +135,19 @@ public class FindAllNumbersDisappearedInAnArray {
      */
     // @formatter:on
     public List<Integer> findDisappearedNumbersNegativeMarking(int[] nums) {
-        List<Integer> dissappearedIntegers = new ArrayList<>();
         int n = nums.length;
-        boolean[] isPresent = new boolean[n + 1];
-        for (int num : nums) {
-            isPresent[num] = true;
+        List<Integer> missingNumbers = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            int index = Math.abs(nums[i]) - 1;
+            if (nums[index] > 0)
+                nums[index] = -nums[index];
         }
 
-        for (int i = 1; i <= n; i++) {
-            if (!isPresent[i]) {
-                dissappearedIntegers.add(i);
-            }
+        for (int index = 0; index < n; index++) {
+            if (nums[index] > 0)
+                missingNumbers.add(index + 1);
         }
-        return dissappearedIntegers;
+        return missingNumbers;
     }
 
     // @formatter:off
@@ -159,19 +162,25 @@ public class FindAllNumbersDisappearedInAnArray {
      */
     // @formatter:on
     public List<Integer> findDisappearedNumbersCyclicSort(int[] nums) {
-        List<Integer> dissappearedIntegers = new ArrayList<>();
         int n = nums.length;
-        boolean[] isPresent = new boolean[n + 1];
-        for (int num : nums) {
-            isPresent[num] = true;
-        }
-
-        for (int i = 1; i <= n; i++) {
-            if (!isPresent[i]) {
-                dissappearedIntegers.add(i);
+        int i = 0;
+        while (i < n) {
+            int home = nums[i] - 1;
+            if (nums[i] != nums[home]) {
+                int tmp = nums[i];
+                nums[i] = nums[home];
+                nums[home] = tmp;
+            } else {
+                i++;
             }
         }
-        return dissappearedIntegers;
+        List<Integer> missing = new ArrayList<>();
+        for (int k = 0; k < n; k++) {
+            if (nums[k] != k + 1) {
+                missing.add(k + 1);
+            }
+        }
+        return missing;
     }
 }
 // @formatter:off
